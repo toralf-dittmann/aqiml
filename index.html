@@ -186,6 +186,7 @@ input, textarea { outline: auto; caret-color: auto; }
         <input type="email" id="customer-email" class="form-control my-2" placeholder="E-Mail">
         <button id="request-quote" class="btn btn-primary my-2">Request Quote</button>
       </div>
+      <div id="quote-message" style="margin-top:10px; font-size:0.95rem;"></div>
     </div>
   </div>
 
@@ -232,21 +233,20 @@ input, textarea { outline: auto; caret-color: auto; }
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-  // --- CONFIG: GAS Web App URL ---
+  // ---- CONFIG ----
   const GAS_URL = 'https://script.google.com/macros/s/AKfycbxoShkKUX43wnp2wNJk6diSAUsD-dRzsikEinq0xFR2Wpepg9oTNNOyxNSwG5MKFr3aGg/exec';
-
-  // Start parameter from URL: ?start=Marine%20Chandlery or ?start=Maritime%20Lifestyle
   const urlParams = new URLSearchParams(window.location.search);
   const startParameter = urlParams.get('start') || '';
 
+  // Prevent caret in non-inputs
   document.addEventListener("mousedown", function(event) {
     if (event.target.tagName !== "INPUT" && event.target.tagName !== "TEXTAREA") {
       document.activeElement.blur();
     }
   });
 
-  // helpers
-  function s(v){ return v==null ? "" : String(v).trim(); }
+  // Helpers
+  function s(v){ return v==null? "": String(v).trim(); }
   function n(v){ return (typeof v==="number")? v : parseFloat(String(v).replace(/[^\d.-]/g,"")) || 0; }
 
   function toDriveImg(urlOrId){
@@ -255,6 +255,16 @@ input, textarea { outline: auto; caret-color: auto; }
     return m ? ("https://drive.google.com/thumbnail?id="+m[0]+"&sz=w1200") : str;
   }
 
+  function escapeHtml(str){
+    return String(str || '')
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;')
+      .replace(/'/g,'&#39;');
+  }
+
+  // Quick test image
   (function testOne(){
     const test = new Image();
     test.onload  = ()=>console.log("OK image", test.naturalWidth, "x", test.naturalHeight);
@@ -267,9 +277,19 @@ input, textarea { outline: auto; caret-color: auto; }
   const scrollThreshold = 5;
   const menuItems = menuContainer.querySelectorAll(':scope > *');
 
-  // VAT globals (default 15% until GAS answers)
-  var vatRate = 0.15;
-  var vatNotice = '';
+  // Globals
+  let vatRate = 0.15;
+  let vatNotice = '';
+  let currentSupercategory = '';
+  let currentSubcategory = '';
+  let basket = [];
+  let products = [];
+  let productsByGroupKey = {};
+  let fuzzyOptions = null;
+  let resultsPerPage = 100;
+  let currentPage = 1;
+  let searchResults = [];
+  let itemCount = 0;
 
   function showMenuContainer(){
     menuContainer.classList.remove('hidden');
@@ -277,57 +297,128 @@ input, textarea { outline: auto; caret-color: auto; }
       item.style.opacity = '1';
       item.style.visibility = 'visible';
     });
-    console.log("Menu shown");
   }
 
-  // ---------- DATA STATE ----------
-  let currentSupercategory = '';
-  let currentSubcategory = '';
-  let basket = [];
-  let products = [];
-  let productsByGroupKey = {};
-  let fuzzyOptions = null;
-
-  let resultsPerPage = 100;
-  let currentPage = 1;
-  let searchResults = [];
-  let itemCount = 0;
-
-  // ---------- API HELPERS ----------
-
-  async function fetchJsonOrFallback(url, fallbackValue) {
-    try {
-      const resp = await fetch(url);
-      const text = await resp.text();
-      try {
-        return JSON.parse(text);
-      } catch (e) {
-        console.error('Non-JSON response from', url, text);
-        return fallbackValue;
-      }
-    } catch (err) {
-      console.error('Fetch error for', url, err);
-      return fallbackValue;
+  // ---- Fetch helpers (GET & POST) ----
+  async function fetchJsonOrError(url){
+    const res = await fetch(url, { method:'GET' });
+    if (!res.ok){
+      throw new Error('HTTP ' + res.status + ' for ' + url);
     }
+    const text = await res.text();
+    try { return JSON.parse(text); }
+    catch { return text; } // fallback
   }
 
-  async function postJsonOrError(action, payload) {
-    const url = GAS_URL + '?action=' + encodeURIComponent(action);
-    const resp = await fetch(url, {
+  // Use text/plain to avoid CORS preflight; server parses e.postData.contents as JSON
+  async function postJsonOrError(url, payload){
+    const res = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify(payload || {})
     });
-    const text = await resp.text();
+    if (!res.ok){
+      throw new Error('HTTP ' + res.status + ' for ' + url);
+    }
+    const text = await res.text();
+    try { return JSON.parse(text); }
+    catch { return text; }
+  }
+
+  // ---- VAT ----
+  async function fetchVatRate(){
     try {
-      return JSON.parse(text);
-    } catch(e) {
-      console.error('Non-JSON POST response for action', action, text);
-      return null;
+      const info = await fetchJsonOrError(GAS_URL + '?action=getVatRate');
+      if (info && typeof info.rate === 'number'){
+        vatRate = info.rate;
+      } else {
+        vatRate = 0.15;
+      }
+      vatNotice = info && info.notice ? String(info.notice) : '';
+      console.log('VAT fetched =', vatRate, vatNotice);
+    } catch (err){
+      console.error('VAT fetch failed:', err);
+      vatRate = 0.15;
+      vatNotice = '';
     }
   }
 
-  // ---------- SUPER & SUBCATEGORIES ----------
+  // ---- Products ----
+  function normalizeProducts(productsData){
+    return (productsData||[])
+      .filter(p=>!s(p.productNumber).startsWith('X'))
+      .map(p=>({
+        ...p,
+        productNumber:   s(p.productNumber),
+        description:     s(p.description),
+        variant:         s(p.variant),
+        material:        s(p.material),
+        sheetName:       s(p.sheetName),
+        imageUrl:        s(p.imageUrl),
+        storageLocation: s(p.storageLocation),
+        price:           n(p.price),
+        superCategory:   s(p.superCategory),
+        subCategory:     s(p.subCategory),
+        imageHash:       s(p.imageHash)
+      }));
+  }
+
+  function groupProducts(){
+    productsByGroupKey = {};
+    products.forEach(p=>{
+      const hashKey = s(p.imageHash) || 'no-hash';
+      const descKey = s(p.description);
+      const key = `${hashKey}|${descKey}`;
+      if(!productsByGroupKey[key]) productsByGroupKey[key] = [];
+      productsByGroupKey[key].push(p);
+    });
+  }
+
+  // fuzzysort options
+  function initializeFuzzysort(productsData){
+    fuzzyOptions = {
+      keys: ['productNumber','description','sheetName','superCategory','subCategory','material'],
+      allowTypo: true,
+      limit: 100000,
+      threshold: -Infinity
+    };
+    console.log("fuzzysort ready with", productsData.length, "products");
+  }
+
+  async function loadAllProducts(){
+    document.getElementById("loading-spinner").style.display = "block";
+    try {
+      const data = await fetchJsonOrError(GAS_URL + '?action=getProductsFromSheet');
+      products = normalizeProducts(data);
+      groupProducts();
+      initializeFuzzysort(products);
+
+      document.getElementById("loading-spinner").style.display = "none";
+      const sc = document.getElementById("supercategories-container");
+      sc.style.display = "block";
+      sc.classList.add("show");
+      displaySupercategories();
+
+      if (startParameter){
+        console.log("Start parameter detected:", startParameter);
+        if (startParameter === 'Marine Chandlery'){
+          selectSupercategory('Marine Chandlery','marine-chandlery-header','maritime-lifestyle-header');
+        } else if (startParameter === 'Maritime Lifestyle'){
+          selectSupercategory('Maritime Lifestyle','maritime-lifestyle-header','marine-chandlery-header');
+        } else {
+          console.warn("Invalid start parameter:", startParameter);
+        }
+      }
+    } catch (err){
+      console.error('Product fetch failed:', err);
+      document.getElementById("loading-spinner").style.display = "none";
+    }
+  }
+
+  // ---- UI helpers ----
+  function formatPrice(amount){
+    return n(amount).toLocaleString('en-US',{minimumFractionDigits:2, maximumFractionDigits:2});
+  }
 
   function displaySupercategories(){
     document.getElementById('marine-chandlery-header').addEventListener('click', ()=>{
@@ -359,6 +450,10 @@ input, textarea { outline: auto; caret-color: auto; }
     searchResultCount.textContent = '0 results';
 
     displaySubcategories(supercategory);
+  }
+
+  function updateSearchResultsCount(count){
+    document.getElementById('search-result-count').textContent = `${count} results`;
   }
 
   function displaySubcategories(superCategory){
@@ -412,22 +507,16 @@ input, textarea { outline: auto; caret-color: auto; }
     document.getElementById('product-grid').style.display = 'none';
   }
 
-  // ---------- SEARCH / FUZZYSORT ----------
-
-  function initializeFuzzysort(productsData){
-    fuzzyOptions = {
-      keys: ['productNumber','description','sheetName','superCategory','subCategory','material'],
-      allowTypo: true,
-      limit: 100000,
-      threshold: -Infinity
-    };
-    console.log("fuzzysort ready with", productsData.length, "products");
+  function loadProducts(subcategory){
+    const filteredProducts = products.filter(p=>p.subCategory===subcategory);
+    currentSubcategory = subcategory;
+    searchResults = filteredProducts;
+    currentPage = 1;
+    displayCurrentPage();
+    updatePaginationControls();
   }
 
-  function updateSearchResultsCount(count){
-    document.getElementById('search-result-count').textContent = `${count} results`;
-  }
-
+  // ---- Search ----
   function executeSearch(){
     const searchInput = document.getElementById('search-input');
     const closeSearchButton = document.getElementById('close-search');
@@ -478,31 +567,6 @@ input, textarea { outline: auto; caret-color: auto; }
     displaySubcategories(currentSupercategory);
   }
 
-  // ---------- PRODUCT NORMALIZATION & GROUPING ----------
-
-  function formatPrice(amount){
-    return n(amount).toLocaleString('en-US',{minimumFractionDigits:2, maximumFractionDigits:2});
-  }
-
-  function normalizeProducts(productsData){
-    return (productsData||[])
-      .filter(p=>!s(p.productNumber).startsWith('X'))
-      .map(p=>({
-        ...p,
-        productNumber:   s(p.productNumber),
-        description:     s(p.description),
-        variant:         s(p.variant),
-        material:        s(p.material),
-        sheetName:       s(p.sheetName),
-        imageUrl:        s(p.imageUrl),
-        storageLocation: s(p.storageLocation),
-        price:           n(p.price),
-        superCategory:   s(p.superCategory),
-        subCategory:     s(p.subCategory),
-        imageHash:       s(p.imageHash)
-      }));
-  }
-
   function canonicalizeImageUrl(url){
     try{
       const u = new URL(url);
@@ -512,18 +576,28 @@ input, textarea { outline: auto; caret-color: auto; }
     }
   }
 
-  function groupProducts(){
-    productsByGroupKey = {};
-    products.forEach(p=>{
-      const hashKey = s(p.imageHash) || 'no-hash';
-      const descKey = s(p.description);
-      const key = `${hashKey}|${descKey}`;
-      if(!productsByGroupKey[key]) productsByGroupKey[key] = [];
-      productsByGroupKey[key].push(p);
-    });
+  // ---- Product Detail & AI ----
+  async function fetchAiDescription(product){
+    try {
+      const productParam = encodeURIComponent(JSON.stringify({
+        productNumber: product.productNumber,
+        description: product.description,
+        variant: product.variant,
+        material: product.material,
+        superCategory: product.superCategory,
+        subCategory: product.subCategory
+      }));
+      const data = await fetchJsonOrError(
+        GAS_URL + '?action=getAiGeneratedContent&product=' + productParam
+      );
+      if (typeof data === 'string') return data;
+      if (data && typeof data.text === 'string') return data.text;
+      return 'Detailed information currently unavailable.';
+    } catch (err){
+      console.error('AI fetch failed:', err);
+      return 'Detailed information currently unavailable.';
+    }
   }
-
-  // ---------- PRODUCT DETAIL MODAL ----------
 
   function openProductDetail(groupKey){
     const modalEl = document.getElementById('productDetailModal');
@@ -535,10 +609,10 @@ input, textarea { outline: auto; caret-color: auto; }
     modalBody.innerHTML = `
       <div class="row">
         <div class="col-md-6">
-          <img class="img-fluid product-hero" alt="${s(first.description)}" style="max-height:70vh; object-fit:contain;">
+          <img class="img-fluid product-hero" alt="${escapeHtml(s(first.description))}" style="max-height:70vh; object-fit:contain;">
         </div>
         <div class="col-md-6">
-          <h3>${s(first.description)}</h3>
+          <h3>${escapeHtml(s(first.description))}</h3>
           <p class="detail-product-number"></p>
           <p class="detail-variant"></p>
           <p class="detail-material text-muted fst-italic"></p>
@@ -589,28 +663,16 @@ input, textarea { outline: auto; caret-color: auto; }
 
       heroImg.src = toDriveImg(item.imageUrl);
 
+      // AI description for this specific item
       aiContainer.innerHTML = `
         <div class="text-muted">
           Loading more details...
           <div class="spinner-border spinner-border-sm" role="status"></div>
         </div>
       `;
-
-      // Call GAS getAiGeneratedContent via GET with product JSON
-      const productParam = encodeURIComponent(JSON.stringify(item));
-      const url = GAS_URL + '?action=getAiGeneratedContent&product=' + productParam;
-
-      fetch(url)
-        .then(resp => resp.text())
-        .then(text => {
-          let msg = text;
-          try { msg = JSON.parse(text); } catch(e) {}
-          aiContainer.innerHTML = `<p>${msg}</p>`;
-        })
-        .catch(err => {
-          console.error('AI description fetch failed', err);
-          aiContainer.innerHTML = "<p class='text-danger'>Detailed information currently unavailable.</p>";
-        });
+      fetchAiDescription(item).then(desc=>{
+        aiContainer.innerHTML = `<p>${escapeHtml(desc)}</p>`;
+      });
     }
 
     updateDetailMeta(first.productNumber, first.price, s(first.variant));
@@ -660,8 +722,7 @@ input, textarea { outline: auto; caret-color: auto; }
     new bootstrap.Modal(modalEl).show();
   }
 
-  // ---------- PRODUCT GRID & PAGINATION ----------
-
+  // ---- Product grid & pagination ----
   function displayCurrentPage(){
     const groupKeys = [];
     const seenKeys = new Set();
@@ -845,10 +906,11 @@ input, textarea { outline: auto; caret-color: auto; }
     container.innerHTML = '';
 
     const groupKeys = [];
+    const seen = new Set();
     searchResults.forEach(item=>{
       const imgKey = canonicalizeImageUrl(s(item.imageUrl));
       const key = `${s(item.description)}|${imgKey}`;
-      if(!groupKeys.includes(key)) groupKeys.push(key);
+      if(!seen.has(key)){ seen.add(key); groupKeys.push(key); }
     });
 
     const totalPages = Math.ceil(groupKeys.length / resultsPerPage);
@@ -880,25 +942,7 @@ input, textarea { outline: auto; caret-color: auto; }
     container.appendChild(right);
   }
 
-  // Safari helpers
-  function isSafariBrowser(){ return /^((?!chrome|android).)*safari/i.test(navigator.userAgent); }
-  function scrollToElement(elementId){
-    const element = document.getElementById(elementId);
-    const yOffset = -80;
-    const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
-    window.scrollTo({ top:y, behavior:'smooth' });
-  }
-
-  function loadProducts(subcategory){
-    const filteredProducts = products.filter(p=>p.subCategory===subcategory);
-    searchResults = filteredProducts;
-    currentPage = 1;
-    displayCurrentPage();
-    updatePaginationControls();
-  }
-
-  // ---------- BASKET ----------
-
+  // ---- Basket ----
   function toggleBasket(){
     updateBasket();
     const basketSidebar = document.getElementById("basket-sidebar");
@@ -922,7 +966,6 @@ input, textarea { outline: auto; caret-color: auto; }
   function addToBasket(productNumber){
     const product = products.find(p=>p.productNumber===productNumber);
     if (!product) return;
-
     const existingProduct = basket.find(item=>item.productNumber===productNumber);
 
     if(existingProduct){ existingProduct.quantity += 1; }
@@ -971,7 +1014,7 @@ input, textarea { outline: auto; caret-color: auto; }
       const detailsContainer = document.createElement("div");
       detailsContainer.classList.add("basket-item-details");
       detailsContainer.innerHTML = `
-        ${fullDescription}<br>
+        ${escapeHtml(fullDescription)}<br>
         <span class="basket-item-price">
           FJD VIP ${formatPrice(totalProductPrice * (1 + vatRate))}
         </span>
@@ -1051,21 +1094,6 @@ input, textarea { outline: auto; caret-color: auto; }
     });
   }
 
-  document.addEventListener("click", function(event){
-    const basketSidebar = document.getElementById("basket-sidebar");
-    const isClickInsideBasket = basketSidebar.contains(event.target);
-    const isQuantityControl = event.target.classList.contains("quantity-field") ||
-                              event.target.classList.contains("btn-danger") ||
-                              event.target.classList.contains("btn-success");
-    if(!isClickInsideBasket && !isQuantityControl && basketSidebar.classList.contains("expanded")){
-      document.getElementById("basket-content").style.display = "none";
-      document.getElementById("basket-total").style.display = "block";
-      basketSidebar.classList.remove("expanded");
-    }
-  });
-
-  document.getElementById("basket-toggle").addEventListener("click", toggleBasket);
-
   function closeBasket(){
     const basketSidebar = document.getElementById("basket-sidebar");
     const closeButton = document.getElementById("close-basket");
@@ -1075,159 +1103,82 @@ input, textarea { outline: auto; caret-color: auto; }
     closeButton.style.display = "none";
   }
 
-  // ---------- VAT FETCH ----------
-
-  function fetchVatRate(callback){
-    const url = GAS_URL + '?action=getVatRate';
-    fetch(url)
-      .then(resp => resp.text())
-      .then(text => {
-        let info = null;
-        try { info = JSON.parse(text); } catch(e) {
-          console.error('VAT: non-JSON response', text);
-        }
-        if (info && typeof info.rate === 'number') {
-          window.vatRate   = info.rate;
-          window.vatNotice = info.notice || '';
-        } else {
-          window.vatRate = 0.15;
-          window.vatNotice = '';
-        }
-        console.log('VAT fetched =', window.vatRate);
-        if (typeof callback === 'function') callback();
-      })
-      .catch(err => {
-        console.error('VAT fetch failed:', err);
-        window.vatRate = 0.15;
-        window.vatNotice = '';
-        if (typeof callback === 'function') callback();
-      });
-  }
-
-  // ---------- LOAD PRODUCTS FROM GAS ----------
-
-  function loadProductsFromSheet(startCategory){
-    const url = GAS_URL + '?action=getProductsFromSheet';
-    fetch(url)
-      .then(resp => resp.text())
-      .then(text => {
-        let productsData = [];
-        try { productsData = JSON.parse(text); }
-        catch(e) {
-          console.error('Products: non-JSON response', text);
-          productsData = [];
-        }
-        products = normalizeProducts(productsData);
-        groupProducts();
-        initializeFuzzysort(products);
-
-        document.getElementById("loading-spinner").style.display = "none";
-        const sc = document.getElementById("supercategories-container");
-        sc.style.display = "block";
-        sc.classList.add("show");
-
-        displaySupercategories();
-
-        if (startCategory){
-          console.log("Start parameter detected:", startCategory);
-          if (startCategory === 'Marine Chandlery'){
-            selectSupercategory('Marine Chandlery','marine-chandlery-header','maritime-lifestyle-header');
-          } else if (startCategory === 'Maritime Lifestyle'){
-            selectSupercategory('Maritime Lifestyle','maritime-lifestyle-header','marine-chandlery-header');
-          } else {
-            console.warn("Invalid start parameter:", startCategory);
-          }
-        }
-      })
-      .catch(err => {
-        console.error('Product fetch failed:', err);
-        document.getElementById("loading-spinner").style.display = "none";
-      });
-  }
-
-  // ---------- REQUEST QUOTE FLOW ----------
-
+  // ---- Request Quote flow ----
   async function handleRequestQuoteClick(){
-    const requestQuoteButton = document.getElementById("request-quote");
-    const customerName  = document.getElementById("customer-name").value;
-    const customerEmail = document.getElementById("customer-email").value;
+    const msgEl = document.getElementById('quote-message');
+    msgEl.textContent = '';
+    msgEl.style.color = '#333';
 
-    if (basket.length === 0){ alert("Please add items to the basket."); return; }
-    if (!customerName || !customerEmail){ alert("Please enter both your name and email."); return; }
+    const customerName  = s(document.getElementById("customer-name").value);
+    const customerEmail = s(document.getElementById("customer-email").value);
 
-    requestQuoteButton.disabled = true;
-    requestQuoteButton.textContent = "Processing...";
+    if (basket.length === 0){
+      alert("Please add items to the basket.");
+      return;
+    }
+    if (!customerName || !customerEmail){
+      alert("Please enter both your name and email.");
+      return;
+    }
 
-    const quotationData = {
-      customerName,
-      customerEmail,
-      products: basket.map(item=>({
-        productNumber: item.productNumber,
-        description: `${item.description}${item.variant ? ", " + item.variant : ""}${item.material ? " - " + item.material : ""} - ${item.productNumber}${item.storageLocation ? " - " + item.storageLocation : ""}`,
-        price: item.price,
-        quantity: item.quantity,
-        imageUrl: item.imageUrl
-      }))
-    };
+    const btn = document.getElementById('request-quote');
+    btn.disabled = true;
+    btn.textContent = "Processing...";
 
     try {
       // 1) Get quotation number
-      const qUrl = GAS_URL + '?action=generateQuotationNumber';
-      const qText = await (await fetch(qUrl)).text();
-      let qNr = qText;
-      try { qNr = JSON.parse(qText); } catch(e) {}
-      quotationData.quotationNr = qNr;
+      const qnResp = await fetchJsonOrError(GAS_URL + '?action=generateQuotationNumber');
+      const quotationNr = (typeof qnResp === 'string')
+        ? qnResp
+        : (qnResp && qnResp.quotationNr) || '';
+
+      const quotationData = {
+        customerName,
+        customerEmail,
+        quotationNr,
+        products: basket.map(item=>({
+          productNumber: item.productNumber,
+          description: `${item.description}${item.variant ? ", " + item.variant : ""}${item.material ? " - " + item.material : ""} - ${item.productNumber}${item.storageLocation ? " - " + item.storageLocation : ""}`,
+          price: item.price,
+          quantity: item.quantity,
+          imageUrl: item.imageUrl
+        }))
+      };
 
       // 2) Append to Quotations sheet
-      await postJsonOrError('appendToQuotationsSheet', quotationData);
+      await postJsonOrError(GAS_URL + '?action=appendToQuotationsSheet', quotationData);
 
-      // 3) Send quotation email (server also gets accounting emails)
-      await postJsonOrError('sendQuotationEmail', quotationData);
+      // 3) Send quotation email
+      await postJsonOrError(GAS_URL + '?action=sendQuotationEmail', quotationData);
 
-      alert("Quotation sent. You will receive a copy via email.");
+      msgEl.style.color = 'green';
+      msgEl.textContent = 'Your quotation has been sent successfully. Thank you!';
+      btn.textContent = "Request Quote";
+      btn.disabled = false;
 
-      basket = [];
+      // Clear basket
+      basket.length = 0;
       itemCount = 0;
       updateBasket();
       closeBasket();
-    } catch (err) {
-      console.error("Error sending quotation", err);
-      alert("An error occurred while sending your quotation. Please try again later or email us directly.");
-    } finally {
-      requestQuoteButton.disabled = false;
-      requestQuoteButton.textContent = "Request Quote";
+
+    } catch (err){
+      console.error('Error sending quotation', err);
+      msgEl.style.color = 'red';
+      msgEl.textContent = 'An error occurred while sending your quotation. Please try again later or email us directly.';
+      btn.textContent = "Request Quote";
+      btn.disabled = false;
     }
   }
 
-  // ---------- ON LOAD ----------
-
-  window.onload = function(){
-    document.getElementById("loading-spinner").style.display = "block";
-
-    const savedBasket = localStorage.getItem('basket');
-    if (savedBasket){
-      try {
-        basket = JSON.parse(savedBasket);
-        itemCount = basket.reduce((acc, it)=> acc + (it.quantity || 0), 0);
-        updateBasket();
-      } catch(e) {
-        console.error('Failed to parse saved basket', e);
-      }
-    }
-
-    document.getElementById("supercategories-container").style.display = "none";
-
-    fetchVatRate(function(){
-      loadProductsFromSheet(startParameter);
-    });
-
-    const requestQuoteButton = document.getElementById("request-quote");
-    if (requestQuoteButton){
-      requestQuoteButton.addEventListener("click", handleRequestQuoteClick);
-    } else {
-      console.error("Request Quote button not found in DOM.");
-    }
-  };
+  // ---- Misc ----
+  function isSafariBrowser(){ return /^((?!chrome|android).)*safari/i.test(navigator.userAgent); }
+  function scrollToElement(elementId){
+    const element = document.getElementById(elementId);
+    const yOffset = -80;
+    const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+    window.scrollTo({ top:y, behavior:'smooth' });
+  }
 
   // Up icon
   const upIcon = document.getElementById("up-icon");
@@ -1246,14 +1197,39 @@ input, textarea { outline: auto; caret-color: auto; }
     if (Math.abs(currentScrollTop - lastScrollTop) > scrollThreshold){
       if (currentScrollTop < lastScrollTop){
         menuContainer.classList.remove('hidden');
-        console.log("Menu shown");
       } else if (currentScrollTop > lastScrollTop){
         menuContainer.classList.add('hidden');
-        console.log("Menu hidden");
       }
       lastScrollTop = currentScrollTop;
     }
   });
+
+  // ---- Initialisation ----
+  window.onload = async function(){
+    document.getElementById("loading-spinner").style.display = "block";
+
+    // Restore basket from localStorage
+    const savedBasket = localStorage.getItem('basket');
+    if (savedBasket){
+      try { basket = JSON.parse(savedBasket) || []; } catch { basket = []; }
+      itemCount = basket.reduce((sum, item)=> sum + (item.quantity || 0), 0);
+      updateBasket();
+    }
+
+    document.getElementById("supercategories-container").style.display = "none";
+
+    await fetchVatRate();
+    await loadAllProducts();
+
+    // Basket toggle
+    document.getElementById("basket-toggle").addEventListener("click", toggleBasket);
+
+    // Request quote
+    const requestQuoteButton = document.getElementById("request-quote");
+    if (requestQuoteButton){
+      requestQuoteButton.addEventListener("click", handleRequestQuoteClick);
+    }
+  };
 </script>
 
 <!-- Product Detail Modal -->
@@ -1265,7 +1241,7 @@ input, textarea { outline: auto; caret-color: auto; }
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body" id="productDetailContent" style="overflow-y:auto;">
-        <!-- content gets injected here by openProductDetail() -->
+        <!-- content injected by openProductDetail() -->
       </div>
     </div>
   </div>
