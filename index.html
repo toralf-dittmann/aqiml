@@ -6,6 +6,9 @@
   <meta name="viewport" content="width=1000">
   <title>AQUAM INSULA Maritime Lifestyle</title>
 
+  <!-- Favicon (place favicon.ico in the same folder as this index.html) -->
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
 
@@ -25,194 +28,394 @@ body {
 
 .container { padding: 0; max-width: 100%; }
 
+/* Basket sidebar */
 #basket-sidebar {
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  position: fixed; top: 10px; right: 10px; width: 110px; height: auto; background-color: white;
-  z-index: 9999; border: none; box-shadow: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  width: 110px;
+  height: auto;
+  background-color: white;
+  z-index: 9999;
+  border: none;
+  box-shadow: none;
 }
 #basket-sidebar.expanded {
-  width: 400px; padding: 20px;
+  width: 400px;
+  padding: 20px;
   box-shadow: 0px 4px 12px rgba(0, 102, 204, 1);
 }
 #basket-icon { width: 43px; height: auto; }
 #basket-total { font-size: 1.0rem; margin-top: 5px; }
 #basket-sidebar #close-basket {
-  font-size: 3rem; z-index:10000; color: #333; cursor: pointer; position: absolute;
-  top: 10px; right: 10px; display: none;
+  font-size: 3rem;
+  z-index: 10000;
+  color: #333;
+  cursor: pointer;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: none;
 }
-#basket-content { display: none; max-height: 60vh; overflow-y: auto; padding-right: 10px; }
-.basket-has-items { box-shadow: 0px 4px 12px rgba(0, 102, 204, 1); }
+#basket-content {
+  display: none;
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+.basket-has-items {
+  box-shadow: 0px 4px 12px rgba(0, 102, 204, 1);
+}
 .basket-item {
-  font-size: 1.0rem; margin-bottom: 15px; border-bottom: 1px solid #ddd; padding-bottom: 10px;
+  font-size: 1.0rem;
+  margin-bottom: 15px;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 10px;
 }
 
 /* Add to Basket button */
-.btn-add-to-basket{
-  background-color:#4a4a4a;color:#fff;border:none;font-size:1.0rem;
-  padding:5px 10px;height:auto;line-height:1;display:inline-flex;
-  align-items:center;justify-content:center;width:auto;transition:background-color .2s;
+.btn-add-to-basket {
+  background-color: #4a4a4a;
+  color: #fff;
+  border: none;
+  font-size: 1.0rem;
+  padding: 5px 10px;
+  height: auto;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  transition: background-color .2s;
 }
-.btn-add-to-basket:hover{ background-color:green; }
-
-/* Variant “table” styling */
-.variant-table{ display:flex; gap:8px; margin-top:10px; justify-content:center; flex-wrap:wrap; }
-.variant-option{
-  padding:6px 12px; border:1px solid #ccc; border-radius:4px; cursor:pointer;
-  user-select:none; transition:background-color .2s;
+.btn-add-to-basket:hover {
+  background-color: green;
 }
-.variant-option.selected{ background-color:lightgrey; }
-.variant-option:hover{ background-color:#e0e0e0; }
 
-.basket-controls{ display:flex; align-items:center; gap:5px; }
-.quantity-field{ width:50px; height:35px; text-align:center; }
-.basket-controls .btn-danger, .basket-controls .btn-success{
-  background-color:#4a4a4a; color:#fff; border:none; height:35px; width:35px;
-  display:flex; align-items:center; justify-content:center;
+/* Variant styling */
+.variant-table {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.variant-option {
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color .2s;
+}
+.variant-option.selected {
+  background-color: lightgrey;
+}
+.variant-option:hover {
+  background-color: #e0e0e0;
+}
+
+.basket-controls {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.quantity-field {
+  width: 50px;
+  height: 35px;
+  text-align: center;
+}
+.basket-controls .btn-danger,
+.basket-controls .btn-success {
+  background-color: #4a4a4a;
+  color: #fff;
+  border: none;
+  height: 35px;
+  width: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Supercategory & Subcategory */
-.supercategory,.subcategory{
-  cursor:pointer; text-align:center; transition:all .3s ease-in-out;
+.supercategory,
+.subcategory {
+  cursor: pointer;
+  text-align: center;
+  transition: all .3s ease-in-out;
 }
-.supercategory img{ width:100%; height:auto; }
-.supercategory-selected,.subcategory-selected{
-  box-shadow:0px 4px 12px rgba(0,102,204,1);
+.supercategory img {
+  width: 100%;
+  height: auto;
 }
-.supercategory:hover,.subcategory:hover{
-  box-shadow:0px 4px 12px rgba(100,100,100,.7);
+.supercategory-selected,
+.subcategory-selected {
+  box-shadow: 0px 4px 12px rgba(0,102,204,1);
 }
-.subcategory{
-  display:flex; flex-direction:column; align-items:center; justify-content:center;
-  padding:10px; width:300px; height:400px; box-sizing:border-box; text-align:center;
+.supercategory:hover,
+.subcategory:hover {
+  box-shadow: 0px 4px 12px rgba(100,100,100,.7);
 }
-.subcategory .card-body{
-  display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%;
+.subcategory {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  width: 300px;
+  height: 400px;
+  box-sizing: border-box;
+  text-align: center;
 }
-.card-img-top{ width:100%; height:100px; object-fit:cover; border-radius:5px; }
+.subcategory .card-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+.card-img-top {
+  width: 100%;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 5px;
+}
 
 /* Spacing between grids */
-#subcategory-grid{ margin-bottom:40px; }
-#product-grid{ margin-top:40px; }
+#subcategory-grid { margin-bottom: 40px; }
+#product-grid      { margin-top: 40px; }
 
-#subcategory-grid-row{
-  display:flex; flex-wrap:wrap; gap:10px; justify-content:center; align-items:center;
+#subcategory-grid-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
 }
 
 /* Card Styles */
-.grid-item{ width:300px; }
-.card{
-  width:300px; display:flex; flex-direction:column; align-items:center; text-align:center;
-  transition:transform .2s ease; transform-origin:top left;
+.grid-item { width: 300px; }
+.card {
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  transition: transform .2s ease;
+  transform-origin: top left;
 }
-.card-body{
-  display:flex; flex-direction:column; justify-content:space-between; width:100%; height:100%;
+.card-body {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 100%;
+  height: 100%;
 }
-.card-img-top{ object-fit:cover; }
-.product-price{ font-size:1.0rem; }
-.image-container{ width:300px; height:300px; overflow:hidden; }
-.card-image{ max-width:100%; max-height:300px; object-fit:contain; }
+.card-img-top { object-fit: cover; }
+.product-price { font-size: 1.0rem; }
+.image-container {
+  width: 300px;
+  height: 300px;
+  overflow: hidden;
+}
+.card-image {
+  max-width: 100%;
+  max-height: 300px;
+  object-fit: contain;
+}
 
-#product-grid-row{
-  display:grid; grid-template-columns:repeat(auto-fill, minmax(300px,1fr)); gap:10px;
+#product-grid-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px,1fr));
+  gap: 10px;
 }
 
 /* Fonts */
-.card-title{ font-size:1.0rem; }
-.supercategory h3{
-  font-size:1.2rem; font-weight:normal; margin-top:10px;
+.card-title { font-size: 1.0rem; }
+.supercategory h3 {
+  font-size: 1.2rem;
+  font-weight: normal;
+  margin-top: 10px;
 }
 
-#quote-form input[type="text"],#quote-form input[type="email"]{
-  font-size:1.0rem; padding:10px; width:100%; box-sizing:border-box; margin-top:10px;
+#quote-form input[type="text"],
+#quote-form input[type="email"] {
+  font-size: 1.0rem;
+  padding: 10px;
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 10px;
 }
-#request-quote{
-  background-color:rgba(0,102,204,1); color:#fff; border:none;
-  font-size:1.0rem; padding:10px 12px; width:100%;
+#request-quote {
+  background-color: rgba(0,102,204,1);
+  color: #fff;
+  border: none;
+  font-size: 1.0rem;
+  padding: 10px 12px;
+  width: 100%;
 }
-#request-quote:disabled{ background-color:#6ca0dc; color:#fff; cursor:not-allowed; }
-
-.search-active{ background-color:white !important; }
-
-#title-img{ width:400px; height:auto; }
-
-#search-container{
-  display:none; height:80px; position:absolute; top:10px; left:450px; margin-left:50px;
-  align-items:flex-start; flex-direction:column; z-index:9999;
-}
-.input-row{ display:flex; align-items:center; width:100%; position:relative; }
-.product-meta{ font-size:.95rem; color:#666; }
-.detail-material{ font-size:0.95rem; margin-bottom:0.5rem; }
-
-#search-result-count{
-  font-size:1.0rem; margin-top:5px; margin-bottom:20px; align-self:flex-start;
-}
-#search-input{
-  display:block; padding:5px; box-sizing:border-box; margin:0;
-}
-#close-search{
-  display:none; font-size:2rem; cursor:pointer; margin-left:10px;
-  position:absolute; right:0;
+#request-quote:disabled {
+  background-color: #6ca0dc;
+  color: #fff;
+  cursor: not-allowed;
 }
 
-.hidden{
-  opacity:0; visibility:hidden; transition:opacity .3s ease, visibility .3s ease;
+.search-active { background-color: white !important; }
+
+#title-img {
+  width: 400px;
+  height: auto;
 }
 
-#menu-container{
-  position:fixed; top:0; left:0; width:100%; height:160px; z-index:9999;
-  transition:opacity .3s ease, visibility .3s ease; background-color:white;
+/* Search container */
+#search-container {
+  display: none;
+  height: 80px;
+  position: absolute;
+  top: 10px;
+  left: 450px;
+  margin-left: 50px;
+  align-items: flex-start;
+  flex-direction: column;
+  z-index: 9999;
+}
+.input-row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  position: relative;
 }
 
-#up-icon{
-  position:fixed; bottom:10px; right:10px; z-index:9999; border-radius:5px;
-  background-color:rgba(255,255,255,.8); padding:5px;
+.product-meta { font-size: .95rem; color: #666; }
+.detail-material { font-size: 0.95rem; margin-bottom: 0.5rem; }
+
+#search-result-count {
+  font-size: 1.0rem;
+  margin-top: 5px;
+  margin-bottom: 20px;
+  align-self: flex-start;
+}
+#search-input {
+  display: block;
+  padding: 5px;
+  box-sizing: border-box;
+  margin: 0;
+}
+#close-search {
+  display: none;
+  font-size: 2rem;
+  cursor: pointer;
+  margin-left: 10px;
+  position: absolute;
+  right: 0;
 }
 
-#supercategories-container{
-  margin-top:180px; opacity:0; transition:opacity .5s ease-in-out;
+.hidden {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .3s ease, visibility .3s ease;
 }
-#supercategories-container.show{ opacity:1; }
+
+#menu-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 160px;
+  z-index: 9999;
+  transition: opacity .3s ease, visibility .3s ease;
+  background-color: white;
+}
+
+#up-icon {
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  z-index: 9999;
+  border-radius: 5px;
+  background-color: rgba(255,255,255,.8);
+  padding: 5px;
+}
+
+#supercategories-container {
+  margin-top: 180px;
+  opacity: 0;
+  transition: opacity .5s ease-in-out;
+}
+#supercategories-container.show {
+  opacity: 1;
+}
 
 /* Pagination */
-#pagination-controls{
-  display:flex; flex-direction:row; justify-content:center; align-items:center;
-  margin-top:20px; gap:10px;
+#pagination-controls {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+  gap: 10px;
 }
-#pagination-controls .page-number{
-  padding:5px 10px; cursor:pointer; border:1px solid #ddd; background-color:#f9f9f9;
+#pagination-controls .page-number {
+  padding: 5px 10px;
+  cursor: pointer;
+  border: 1px solid #ddd;
+  background-color: #f9f9f9;
 }
-#pagination-controls .page-number.active{
-  font-weight:bold; background-color:#ddd;
+#pagination-controls .page-number.active {
+  font-weight: bold;
+  background-color: #ddd;
 }
-#pagination-controls .page-number:hover{ background-color:#eee; }
-#pagination-controls span{ font-size:1.5rem; cursor:pointer; }
+#pagination-controls .page-number:hover {
+  background-color: #eee;
+}
+#pagination-controls span {
+  font-size: 1.5rem;
+  cursor: pointer;
+}
 
-.contact-info{
-  font-size:1.0rem; margin:20px 0; text-align:center; position:relative; z-index:10;
+.contact-info {
+  font-size: 1.0rem;
+  margin: 20px 0;
+  text-align: center;
+  position: relative;
+  z-index: 10;
 }
 
-#loading-spinner{
-  position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
-  z-index:9999;
+#loading-spinner {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 9999;
 }
 
 /* Mobile: keep mostly desktop-like by viewport width=1000, so we just scale fonts a bit */
-@media (max-width:1024px){
-  body,h1,h2,h3,h4,h5,h6,p,span,a,button,input,.card-title,.product-price,
-  .basket-item,.quantity-field,.basket-total-text{
-    font-size:1.1rem !important;
+@media (max-width: 1024px) {
+  body, h1, h2, h3, h4, h5, h6, p, span, a, button, input,
+  .card-title, .product-price, .basket-item, .quantity-field, .basket-total-text {
+    font-size: 1.1rem !important;
   }
 }
 
 /* Equal-height cards in grid */
-#product-grid-row{ align-items:stretch !important; }
-#product-grid-row .grid-item{ display:flex !important; }
-#product-grid-row .grid-item .card{
-  flex:1 1 auto !important; display:flex !important; flex-direction:column !important;
+#product-grid-row { align-items: stretch !important; }
+#product-grid-row .grid-item {
+  display: flex !important;
 }
-#product-grid-row .grid-item .card .card-body{
-  flex:1 1 auto !important; display:flex !important; flex-direction:column !important;
-  justify-content:space-between;
+#product-grid-row .grid-item .card {
+  flex: 1 1 auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+#product-grid-row .grid-item .card .card-body {
+  flex: 1 1 auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between;
 }
   </style>
 </head>
@@ -312,8 +515,8 @@ body {
   const GAS_URL = 'https://script.google.com/macros/s/AKfycbxoShkKUX43wnp2wNJk6diSAUsD-dRzsikEinq0xFR2Wpepg9oTNNOyxNSwG5MKFr3aGg/exec';
 
   // ======= UTILS =======
-  function s(v){ return v==null? "" : String(v).trim(); }
-  function n(v){ return (typeof v==="number")? v : parseFloat(String(v).replace(/[^\d.-]/g,"")) || 0; }
+  function s(v){ return v==null ? "" : String(v).trim(); }
+  function n(v){ return (typeof v==="number") ? v : parseFloat(String(v).replace(/[^\d.-]/g,"")) || 0; }
 
   function toDriveImg(urlOrId){
     const str = String(urlOrId||"");
@@ -363,15 +566,15 @@ body {
   let vatNotice = '';
 
   let currentSupercategory = '';
-  let currentSubcategory = '';
-  let basket = [];
-  let products = [];
-  let productsByGroupKey = {};
-  let searchResults = [];
-  let fuzzyOptions = null;
-  let resultsPerPage = 100;
-  let currentPage = 1;
-  let itemCount = 0;
+  let currentSubcategory   = '';
+  let basket               = [];
+  let products             = [];
+  let productsByGroupKey   = {};
+  let searchResults        = [];
+  let fuzzyOptions         = null;
+  let resultsPerPage       = 100;
+  let currentPage          = 1;
+  let itemCount            = 0;
 
   const aiCache = new Map();
   const FALLBACK_TEXT = 'Detailed information currently unavailable. Please try again later.';
@@ -398,8 +601,8 @@ body {
 
   function normalizeProducts(productsData){
     return (productsData||[])
-      .filter(p=>!s(p.productNumber).startsWith('X'))
-      .map(p=>({
+      .filter(p => !s(p.productNumber).startsWith('X'))
+      .map(p => ({
         ...p,
         productNumber:   s(p.productNumber),
         description:     s(p.description),
@@ -408,6 +611,7 @@ body {
         sheetName:       s(p.sheetName),
         imageUrl:        s(p.imageUrl),
         storageLocation: s(p.storageLocation),
+        imageHash:       s(p.imageHash),
         price:           n(p.price),
         superCategory:   s(p.superCategory),
         subCategory:     s(p.subCategory)
@@ -426,7 +630,7 @@ body {
 
   function groupProducts(){
     productsByGroupKey = {};
-    products.forEach(p=>{
+    products.forEach(p => {
       const hashKey = s(p.imageHash) || 'no-hash';
       const descKey = s(p.description);
       const key = `${hashKey}|${descKey}`;
@@ -466,19 +670,19 @@ body {
 
   function selectSupercategory(supercategory, selectedId, otherId){
     currentSupercategory = supercategory;
-    currentSubcategory = '';
+    currentSubcategory   = '';
 
     document.getElementById(selectedId).classList.add('supercategory-selected');
     document.getElementById(otherId).classList.remove('supercategory-selected');
 
-    const searchContainer = document.getElementById('search-container');
-    searchContainer.style.display = 'flex';
-
-    const searchInput = document.getElementById('search-input');
+    const searchContainer   = document.getElementById('search-container');
+    const searchInput       = document.getElementById('search-input');
     const searchResultCount = document.getElementById('search-result-count');
     const closeSearchButton = document.getElementById('close-search');
 
-    searchInput.style.display = 'block';
+    searchContainer.style.display = 'flex';
+
+    searchInput.style.display       = 'block';
     searchResultCount.style.display = 'none';
     closeSearchButton.style.display = 'none';
 
@@ -494,11 +698,12 @@ body {
       .map(p => p.subCategory);
 
     const uniqueSubcategories = [...new Set(subcategories)];
-    const subcategoryGridRow = document.getElementById('subcategory-grid-row');
+    const subcategoryGridRow  = document.getElementById('subcategory-grid-row');
     subcategoryGridRow.innerHTML = '';
 
     uniqueSubcategories.forEach(subcategory=>{
-      const firstProduct = products.find(p=>p.subCategory===subcategory && p.superCategory===superCategory);
+      const firstProduct = products.find(p => p.subCategory===subcategory && p.superCategory===superCategory);
+
       const subcategoryCard = document.createElement('div');
       subcategoryCard.classList.add('col-12','col-md-4','grid-item','subcategory');
 
@@ -522,7 +727,7 @@ body {
       subcategoryCard.appendChild(card);
 
       subcategoryCard.addEventListener('click', function(){
-        document.querySelectorAll('.subcategory').forEach(card=>card.classList.remove('subcategory-selected'));
+        document.querySelectorAll('.subcategory').forEach(c => c.classList.remove('subcategory-selected'));
         subcategoryCard.classList.add('subcategory-selected');
         currentSubcategory = subcategory;
         loadProducts(subcategory);
@@ -538,7 +743,7 @@ body {
     });
 
     document.getElementById('subcategory-grid').style.display = 'block';
-    document.getElementById('product-grid').style.display = 'none';
+    document.getElementById('product-grid').style.display     = 'none';
   }
 
   // ======= SEARCH =======
@@ -547,17 +752,17 @@ body {
   }
 
   function executeSearch(){
-    const searchInput = document.getElementById('search-input');
+    const searchInput       = document.getElementById('search-input');
     const closeSearchButton = document.getElementById('close-search');
     const searchResultCount = document.getElementById('search-result-count');
-    const query = s(searchInput.value).toLowerCase();
+    const query             = s(searchInput.value).toLowerCase();
 
     if (query){
-      closeSearchButton.style.display = 'block';
-      searchResultCount.style.display = 'block';
+      closeSearchButton.style.display  = 'block';
+      searchResultCount.style.display  = 'block';
     } else {
-      closeSearchButton.style.display = 'none';
-      searchResultCount.style.display = 'none';
+      closeSearchButton.style.display  = 'none';
+      searchResultCount.style.display  = 'none';
     }
     if (!query) return;
 
@@ -575,22 +780,21 @@ body {
   }
 
   function clearSearch(){
-    const searchInput = document.getElementById('search-input');
+    const searchInput       = document.getElementById('search-input');
     const searchResultCount = document.getElementById('search-result-count');
-    const searchContainer = document.getElementById('search-container');
-    const productGridRow = document.getElementById('product-grid-row');
-    const paginationContainer = document.getElementById('pagination-controls');
 
     searchInput.value = '';
     document.getElementById('close-search').style.display = 'none';
     searchResultCount.style.display = 'none';
-    searchContainer.classList.remove('search-active');
+    document.getElementById('search-container').classList.remove('search-active');
 
+    const productGridRow    = document.getElementById('product-grid-row');
+    const paginationContainer = document.getElementById('pagination-controls');
     productGridRow.innerHTML = '';
     if (paginationContainer){ paginationContainer.innerHTML = ''; }
 
     searchResults = [];
-    currentPage = 1;
+    currentPage   = 1;
     searchResultCount.textContent = '0 results';
 
     displaySubcategories(currentSupercategory);
@@ -598,16 +802,16 @@ body {
 
   // ======= PRODUCT GRID & MODAL =======
   function loadProducts(subcategory){
-    const filteredProducts = products.filter(p=>p.subCategory===subcategory);
+    const filteredProducts = products.filter(p => p.subCategory === subcategory);
     searchResults = filteredProducts;
-    currentPage = 1;
+    currentPage   = 1;
     displayCurrentPage();
     updatePaginationControls();
   }
 
   function displayCurrentPage(){
     const groupKeys = [];
-    const seenKeys = new Set();
+    const seenKeys  = new Set();
     searchResults.forEach(item=>{
       const hashKey = s(item.imageHash) || 'no-hash';
       const descKey = s(item.description);
@@ -618,7 +822,7 @@ body {
       }
     });
 
-    const start = (currentPage - 1) * resultsPerPage;
+    const start    = (currentPage - 1) * resultsPerPage;
     const pageKeys = groupKeys.slice(start, start + resultsPerPage);
 
     const grid = document.getElementById('product-grid-row');
@@ -672,19 +876,19 @@ body {
       cardCol.appendChild(card);
       grid.appendChild(cardCol);
 
-      const pnEl = pnP;
+      const pnEl    = pnP;
       const priceEl = strong;
 
       function updateMeta(pn, price){
-        const item = group.find(p => s(p.productNumber)===s(pn)) || first;
-        const loc = s(item.storageLocation);
-        const pnS = s(pn);
+        const item = group.find(p => s(p.productNumber) === s(pn)) || first;
+        const loc  = s(item.storageLocation);
+        const pnS  = s(pn);
 
         pnEl.textContent = /^[JS]/.test(pnS) ? `${pnS} - ${loc}` : pnS;
         priceEl.textContent = `FJD VIP ${formatPrice(n(price) * (1 + vatRate))}`;
         card.dataset.selectedPn = pnS;
 
-        const v = s(item.variant);
+        const v   = s(item.variant);
         const mat = s(item.material);
         meta.textContent = [v, mat].filter(Boolean).join(' · ');
       }
@@ -697,7 +901,7 @@ body {
       },0);
 
       if (group.length <= 1){
-        // single variant
+        // single variant: nothing extra
       } else if (weightSum > 20){
         const select = document.createElement('select');
         select.className = 'form-select mt-2 variant-dropdown';
@@ -719,7 +923,7 @@ body {
         const secondRow = [];
         group.forEach(p=>{
           const len = s(p.variant).length;
-          const w = (len===1 ? 2 : len===2 ? 1.5 : len);
+          const w   = (len===1 ? 2 : len===2 ? 1.5 : len);
           if (cum + w <= 12 || firstRow.length===0){ firstRow.push(p); cum += w; }
           else { secondRow.push(p); }
         });
@@ -772,7 +976,7 @@ body {
       body.appendChild(btn);
     });
 
-    document.getElementById('product-grid').style.display = 'block';
+    document.getElementById('product-grid').style.display     = 'block';
     document.getElementById('subcategory-grid').style.display = 'none';
 
     updatePaginationControls();
@@ -797,512 +1001,4 @@ body {
     const totalPages = Math.ceil(groupKeys.length / resultsPerPage);
     if (totalPages <= 1) return;
 
-    const left = document.createElement('span');
-    left.textContent = '◀';
-    left.classList.add('page-arrow');
-    left.addEventListener('click', ()=>{
-      if(currentPage>1){ currentPage--; displayCurrentPage(); }
-    });
-    container.appendChild(left);
-
-    for (let p=1; p<=totalPages; p++){
-      const btn = document.createElement('button');
-      btn.textContent = p;
-      btn.classList.add('page-number');
-      if (p===currentPage) btn.classList.add('active');
-      btn.addEventListener('click', ()=>{ currentPage = p; displayCurrentPage(); });
-      container.appendChild(btn);
-    }
-
-    const right = document.createElement('span');
-    right.textContent = '▶';
-    right.classList.add('page-arrow');
-    right.addEventListener('click', ()=>{
-      if(currentPage<totalPages){ currentPage++; displayCurrentPage(); }
-    });
-    container.appendChild(right);
-  }
-
-  // ======= AI FETCH =======
-  async function fetchAiDescription(product){
-    const productStr = JSON.stringify(product || {});
-    const data = await postFormOrError(
-      GAS_URL + '?action=getAiDescription',
-      { product: productStr }
-    );
-    return data && typeof data.text === 'string' ? data.text : FALLBACK_TEXT;
-  }
-
-  function openProductDetail(groupKey){
-    const modalEl = document.getElementById('productDetailModal');
-    const modalBody = document.getElementById('productDetailContent');
-    const group = productsByGroupKey[groupKey] || [];
-    if(!group.length) return;
-    const first = group[0];
-
-    modalBody.innerHTML = `
-      <div class="row">
-        <div class="col-md-6">
-          <img class="img-fluid product-hero"
-               alt="${s(first.description)}"
-               style="max-height:70vh; object-fit:contain;">
-        </div>
-        <div class="col-md-6">
-          <h3>${s(first.description)}</h3>
-          <p class="detail-product-number"></p>
-          <p class="detail-variant"></p>
-          <p class="detail-material text-muted fst-italic"></p>
-          <p class="product-price"><strong></strong></p>
-          <div id="detailVariantContainer" class="mt-3"></div>
-          <div class="mt-3">
-            <button id="detailAddBtn" class="btn-add-to-basket">Add to Basket</button>
-          </div>
-          <hr>
-          <h5>About this Product</h5>
-          <div id="ai-content">
-            <div class="text-muted">
-              Loading more details...
-              <div class="spinner-border spinner-border-sm" role="status"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    `;
-
-    const heroImg   = modalBody.querySelector('.product-hero');
-    const pnEl      = modalBody.querySelector('.detail-product-number');
-    const variantEl = modalBody.querySelector('.detail-variant');
-    const materialEl= modalBody.querySelector('.detail-material');
-    const priceEl   = modalBody.querySelector('.product-price strong');
-    const container = modalBody.querySelector('#detailVariantContainer');
-    const addBtn    = modalBody.querySelector('#detailAddBtn');
-    const aiContainer = modalBody.querySelector('#ai-content');
-
-    heroImg.src = toDriveImg(first.imageUrl);
-
-    async function updateDetailMeta(pn, price, variantText){
-      const item = group.find(p => s(p.productNumber)===s(pn)) || first;
-      const loc = s(item.storageLocation);
-      const pnS = s(pn);
-      const mat = s(item.material);
-
-      pnEl.textContent = /^[JS]/.test(pnS) ? `${pnS} - ${loc}` : pnS;
-      variantEl.textContent = s(variantText);
-      if (/^[SJ]/.test(pnS) && mat) {
-        materialEl.textContent = mat;
-        materialEl.style.display = 'block';
-      } else {
-        materialEl.style.display = 'none';
-      }
-
-      priceEl.textContent = `FJD VIP ${formatPrice(n(price) * (1 + vatRate))}`;
-      addBtn.onclick = () => addToBasket(pnS);
-      heroImg.src = toDriveImg(item.imageUrl);
-
-      const cacheKey = pnS;
-      const cached = aiCache.get(cacheKey);
-      if (cached){
-        aiContainer.textContent = cached;
-        return;
-      }
-
-      aiContainer.innerHTML = `
-        <div class="text-muted">
-          Loading more details...
-          <div class="spinner-border spinner-border-sm" role="status"></div>
-        </div>
-      `;
-
-      try {
-        const text = await fetchAiDescription(item);
-        aiCache.set(cacheKey, text);
-        aiContainer.textContent = text;
-      } catch (err) {
-        console.error('AI fetch failed', err);
-        aiContainer.textContent = 'Detailed information currently unavailable.';
-      }
-    }
-
-    updateDetailMeta(first.productNumber, first.price, s(first.variant));
-
-    const longCount = group.filter(p => s(p.variant).length > 2).length;
-
-    if (group.length > 1){
-      if (longCount > 2){
-        const select = document.createElement('select');
-        select.className = 'form-select mt-2 variant-dropdown';
-        group.forEach((p,i)=>{
-          const opt = new Option(s(p.variant), s(p.productNumber));
-          opt.dataset.price = n(p.price);
-          if(i===0) opt.selected = true;
-          select.appendChild(opt);
-        });
-        const init = select.selectedOptions[0];
-        updateDetailMeta(init.value, n(init.dataset.price), s(init.text));
-        select.addEventListener('click', e => e.stopPropagation());
-        select.addEventListener('change', ()=>{
-          const sel = select.selectedOptions[0];
-          updateDetailMeta(sel.value, n(sel.dataset.price), s(sel.text));
-        });
-        container.appendChild(select);
-      } else {
-        const wrap = document.createElement('div');
-        wrap.className = 'variant-table';
-        group.forEach((p,i)=>{
-          const cell = document.createElement('div');
-          cell.className = 'variant-option' + (i===0 ? ' selected' : '');
-          cell.textContent = s(p.variant);
-          cell.dataset.price = n(p.price);
-          cell.dataset.productNumber = s(p.productNumber);
-          if(i===0) updateDetailMeta(cell.dataset.productNumber, n(cell.dataset.price), cell.textContent);
-          cell.addEventListener('click', e=>{
-            e.stopPropagation();
-            wrap.querySelectorAll('.variant-option').forEach(x=>x.classList.remove('selected'));
-            cell.classList.add('selected');
-            updateDetailMeta(cell.dataset.productNumber, n(cell.dataset.price), cell.textContent);
-          });
-          wrap.appendChild(cell);
-        });
-        container.appendChild(wrap);
-      }
-    }
-
-    new bootstrap.Modal(modalEl).show();
-  }
-
-  // ======= BASKET =======
-  function addToBasket(productNumber){
-    const product = products.find(p=>p.productNumber===productNumber);
-    if (!product) return;
-    const existing = basket.find(item=>item.productNumber===productNumber);
-
-    if(existing){ existing.quantity += 1; }
-    else { basket.push({ ...product, quantity:1 }); }
-
-    itemCount++;
-    document.getElementById('basket-count').textContent = itemCount;
-
-    updateBasket();
-    preventBasketCollapse();
-    showMenuContainer();
-  }
-
-  function updateBasket(){
-    const basketList    = document.getElementById("basket-list");
-    const basketCount   = document.getElementById("basket-count");
-    const basketTotal   = document.getElementById("basket-total");
-    const basketSidebar = document.getElementById("basket-sidebar");
-    const quoteForm     = document.getElementById("quote-form");
-    const basketContent = document.getElementById("basket-content");
-
-    localStorage.setItem('basket', JSON.stringify(basket));
-    basketList.innerHTML = '';
-
-    let totalVEP = 0;
-    basket.forEach(item=>{
-      const totalProductPrice = item.price * item.quantity;
-      totalVEP += totalProductPrice;
-
-      const fullDescription = `${item.description}${item.variant ? ", " + item.variant : ""}${item.storageLocation ? " - " + item.storageLocation : ""}`;
-      const li = document.createElement('li');
-      li.classList.add('basket-item');
-      li.style.display = "flex";
-      li.style.flexDirection = "column";
-
-      const contentContainer = document.createElement("div");
-      contentContainer.style.display = "flex";
-      contentContainer.style.alignItems = "center";
-
-      const img = document.createElement("img");
-      img.src = toDriveImg(item.imageUrl);
-      img.alt = item.description;
-      img.style.width = "80px";
-      img.style.marginRight = "10px";
-
-      const detailsContainer = document.createElement("div");
-      detailsContainer.classList.add("basket-item-details");
-      detailsContainer.innerHTML = `
-        ${fullDescription}<br>
-        <span class="basket-item-price">
-          FJD VIP ${formatPrice(totalProductPrice * (1 + vatRate))}
-        </span>
-      `;
-
-      contentContainer.appendChild(img);
-      contentContainer.appendChild(detailsContainer);
-      li.appendChild(contentContainer);
-
-      const controlsContainer = document.createElement("div");
-      controlsContainer.classList.add("basket-controls");
-      controlsContainer.style.marginTop = "8px";
-      controlsContainer.innerHTML = `
-        <button class="btn btn-sm btn-danger" onclick="changeQuantity('${item.productNumber}', -1); event.stopPropagation();">-</button>
-        <input class="quantity-field" type="number" value="${item.quantity}" onchange="manualQuantityChange('${item.productNumber}', this.value)">
-        <button class="btn btn-sm btn-success" onclick="changeQuantity('${item.productNumber}', 1); event.stopPropagation();">+</button>
-      `;
-      li.appendChild(controlsContainer);
-
-      basketList.appendChild(li);
-    });
-
-    const vatAmount = totalVEP * vatRate;
-    const totalVIP  = totalVEP + vatAmount;
-    const vatPct    = (vatRate * 100).toFixed(1);
-
-    basketCount.textContent = basket.length;
-    basketTotal.textContent = `$${formatPrice(totalVIP)}`;
-
-    document.getElementById("total-vep").innerHTML = `<span class="basket-total-text">Total VEP: FJD ${formatPrice(totalVEP)}</span>`;
-    document.getElementById("vat").innerHTML      = `<span class="basket-total-text">VAT (${vatPct}%): FJD ${formatPrice(vatAmount)}</span>`;
-    document.getElementById("total-vip").innerHTML= `<span class="basket-total-text">Total VIP: FJD ${formatPrice(totalVIP)}</span>`;
-
-    let noticeEl = document.getElementById("basket-vat-notice");
-    if(!noticeEl){
-      noticeEl = document.createElement("div");
-      noticeEl.id = "basket-vat-notice";
-      noticeEl.style.margin = "8px 0";
-      noticeEl.style.fontSize = "0.9rem";
-      noticeEl.style.color = "#555";
-      basketContent.insertBefore(noticeEl, quoteForm);
-    }
-    noticeEl.textContent = vatNotice || "";
-
-    if (basketSidebar.classList.contains("expanded")){
-      basketContent.style.display = "block";
-    }
-  }
-
-  function toggleBasket(){
-    updateBasket();
-    const basketSidebar = document.getElementById("basket-sidebar");
-    const basketContent = document.getElementById("basket-content");
-    const basketTotal = document.getElementById("basket-total");
-    const closeButton = document.getElementById("close-basket");
-
-    if (basketSidebar.classList.contains("expanded")){
-      basketSidebar.classList.remove("expanded");
-      basketContent.style.display = "none";
-      basketTotal.style.display = "block";
-      closeButton.style.display = "none";
-    } else {
-      basketSidebar.classList.add("expanded");
-      basketContent.style.display = "block";
-      basketTotal.style.display = "none";
-      closeButton.style.display = "block";
-    }
-  }
-
-  function closeBasket(){
-    const basketSidebar = document.getElementById("basket-sidebar");
-    const closeButton = document.getElementById("close-basket");
-    basketSidebar.classList.remove("expanded");
-    document.getElementById("basket-content").style.display = "none";
-    document.getElementById("basket-total").style.display = "block";
-    closeButton.style.display = "none";
-  }
-
-  function changeQuantity(productNumber, delta){
-    const product = basket.find(item=>item.productNumber===productNumber);
-    if(product){
-      product.quantity += delta;
-      if(product.quantity <= 0){
-        basket = basket.filter(item=>item.productNumber!==productNumber);
-      }
-    }
-    updateBasket();
-  }
-
-  function manualQuantityChange(productNumber, quantity){
-    const product = basket.find(item=>item.productNumber===productNumber);
-    if(product){
-      product.quantity = parseInt(quantity,10);
-      if(product.quantity <= 0){
-        basket = basket.filter(item=>item.productNumber!==productNumber);
-      }
-    }
-    updateBasket();
-  }
-
-  function preventBasketCollapse(){
-    document.querySelectorAll(".quantity-field, .btn-danger, .btn-success").forEach(element=>{
-      element.addEventListener("click", function(event){
-        event.stopPropagation();
-      });
-    });
-  }
-
-  document.addEventListener("click", function(event){
-    const basketSidebar = document.getElementById("basket-sidebar");
-    const isClickInsideBasket = basketSidebar.contains(event.target);
-    const isQuantityControl = event.target.classList.contains("quantity-field") ||
-                              event.target.classList.contains("btn-danger") ||
-                              event.target.classList.contains("btn-success");
-    if(!isClickInsideBasket && !isQuantityControl && basketSidebar.classList.contains("expanded")){
-      document.getElementById("basket-content").style.display = "none";
-      document.getElementById("basket-total").style.display = "block";
-      basketSidebar.classList.remove("expanded");
-    }
-  });
-
-  document.getElementById("basket-toggle").addEventListener("click", toggleBasket);
-
-  // expose some funcs used inline
-  window.changeQuantity = changeQuantity;
-  window.manualQuantityChange = manualQuantityChange;
-
-  // ======= REQUEST QUOTE FLOW =======
-  async function handleRequestQuoteClick(){
-    const customerName  = document.getElementById("customer-name").value.trim();
-    const customerEmail = document.getElementById("customer-email").value.trim();
-    const btn = document.getElementById("request-quote");
-
-    if (basket.length === 0){
-      alert("Please add items to the basket.");
-      return;
-    }
-    if (!customerName || !customerEmail){
-      alert("Please enter both your name and email.");
-      return;
-    }
-
-    btn.disabled = true;
-    btn.textContent = "Processing...";
-
-    const quotationData = {
-      customerName,
-      customerEmail,
-      products: basket.map(item=>({
-        productNumber: item.productNumber,
-        description: `${item.description}${item.variant ? ", " + item.variant : ""}${item.material ? " - " + item.material : ""} - ${item.productNumber}${item.storageLocation ? " - " + item.storageLocation : ""}`,
-        price: item.price,
-        quantity: item.quantity,
-        imageUrl: item.imageUrl
-      }))
-    };
-
-    try{
-      const res = await postFormOrError(
-        GAS_URL + '?action=submitQuotation',
-        { quotationData: JSON.stringify(quotationData) }
-      );
-      const qNr = res.quotationNr || '';
-
-      alert(`Your quotation ${qNr} has been sent. Thank you!`);
-
-      basket = [];
-      itemCount = 0;
-      updateBasket();
-      closeBasket();
-      document.getElementById("customer-name").value = '';
-      document.getElementById("customer-email").value = '';
-    } catch (err) {
-      console.error('Error sending quotation', err);
-      alert('An error occurred while sending your quotation. Please try again later or email us directly.');
-    } finally {
-      btn.disabled = false;
-      btn.textContent = "Request Quote";
-    }
-  }
-
-  // ======= SCROLL / UP ICON =======
-  const upIcon = document.getElementById("up-icon");
-  if (upIcon){
-    upIcon.addEventListener("click", function(){
-      window.scrollTo({ top:0, behavior:'smooth' });
-    });
-  }
-
-  window.addEventListener("scroll", function(){
-    const currentScrollTop = window.pageYOffset || document.documentElement.scrollTop;
-    if (document.getElementById('basket-sidebar').classList.contains('expanded')){
-      menuContainer.classList.remove('hidden');
-      return;
-    }
-    if (Math.abs(currentScrollTop - lastScrollTop) > scrollThreshold){
-      if (currentScrollTop < lastScrollTop){
-        menuContainer.classList.remove('hidden');
-      } else if (currentScrollTop > lastScrollTop){
-        menuContainer.classList.add('hidden');
-      }
-      lastScrollTop = currentScrollTop;
-    }
-  });
-
-  // ======= INITIAL LOAD =======
-  window.onload = async function(){
-    document.getElementById("loading-spinner").style.display = "block";
-
-    const savedBasket = localStorage.getItem('basket');
-    if (savedBasket){
-      basket = JSON.parse(savedBasket);
-      itemCount = basket.reduce((sum, it)=> sum + (it.quantity || 0), 0);
-      updateBasket();
-    }
-
-    const startCategory = getStartParam();
-    document.getElementById("supercategories-container").style.display = "none";
-
-    try {
-      const [vatData, productsData] = await Promise.all([
-        getJsonOrError(GAS_URL + '?action=getVatRate'),
-        getJsonOrError(GAS_URL + '?action=getProductsFromSheet')
-      ]);
-
-      vatRate   = vatData.rate   != null ? vatData.rate   : 0.15;
-      vatNotice = vatData.notice || '';
-
-      products = normalizeProducts(productsData);
-      groupProducts();
-      initializeFuzzysort(products);
-
-      document.getElementById("loading-spinner").style.display = "none";
-      const sc = document.getElementById("supercategories-container");
-      sc.style.display = "block";
-      sc.classList.add("show");
-
-      displaySupercategories();
-
-      if (startCategory){
-        console.log("Start parameter detected:", startCategory);
-        if (startCategory === 'Marine Chandlery'){
-          selectSupercategory('Marine Chandlery','marine-chandlery-header','maritime-lifestyle-header');
-        } else if (startCategory === 'Maritime Lifestyle'){
-          selectSupercategory('Maritime Lifestyle','maritime-lifestyle-header','marine-chandlery-header');
-        } else {
-          console.warn("Invalid start parameter:", startCategory);
-        }
-      }
-
-    } catch (err) {
-      console.error('Initial load error', err);
-      document.getElementById("loading-spinner").style.display = "none";
-      alert('Error loading products. Please try again later.');
-    }
-
-    const requestQuoteButton = document.getElementById("request-quote");
-    if (requestQuoteButton){
-      requestQuoteButton.addEventListener("click", handleRequestQuoteClick);
-    }
-  };
-</script>
-
-<!-- Product Detail Modal -->
-<div class="modal fade" id="productDetailModal" tabindex="-1"
-     aria-labelledby="productDetailModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-    <div class="modal-content" style="max-height:95vh;">
-      <div class="modal-header sticky-top bg-white"
-           style="border-bottom:1px solid #dee2e6; z-index:10;">
-        <h5 class="modal-title" id="productDetailModalLabel">Product Details</h5>
-        <button type="button" class="btn-close"
-                data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body" id="productDetailContent" style="overflow-y:auto;">
-        <!-- content injected by openProductDetail() -->
-      </div>
-    </div>
-  </div>
-</div>
-
-</body>
-</html>
+    const left =
