@@ -15,35 +15,6 @@
   <script src="https://cdn.jsdelivr.net/npm/fuzzysort@2.0.4/fuzzysort.min.js"></script>
 
   <style>
-
-#search-and-map-row{
-  display:flex;
-  align-items:center;
-  gap:30px;
-}
-
-#map-link-container{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  margin-top:2px;
-  white-space:nowrap;
-  font-size:1.0rem;
-}
-
-#map-link-container a{
-  color:inherit;
-  text-decoration:none;
-}
-
-#map-link-container a:hover{
-  text-decoration:underline;
-}
-
-.map-pin-icon{
-  font-size:1.2rem;
-  line-height:1;
-}
 /* General Styles */
 * { outline: none; caret-color: transparent; }
 input, textarea { outline: auto; caret-color: auto; }
@@ -167,15 +138,8 @@ body {
 #title-img{ width:400px; height:auto; }
 
 #search-container{
-  display:none;
-  height:80px;
-  position:absolute;
-  top:10px;
-  left:450px;
-  margin-left:50px;
-  align-items:flex-start;
-  z-index:9999;
-  width:auto;
+  display:none; height:80px; position:absolute; top:10px; left:450px; margin-left:50px;
+  align-items:flex-start; flex-direction:column; z-index:9999;
 }
 .input-row{ display:flex; align-items:center; width:100%; position:relative; }
 .product-meta{ font-size:.95rem; color:#666; }
@@ -225,10 +189,50 @@ body {
 #pagination-controls .page-number:hover{ background-color:#eee; }
 #pagination-controls span{ font-size:1.5rem; cursor:pointer; }
 
-.contact-info{
-  font-size:1.0rem; margin:20px 0; text-align:center; position:relative; z-index:10;
-}
+  .contact-info{
+    font-size:1.0rem;
+    margin:20px 0;
+    text-align:center;
+    position:relative;
+    z-index:10;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:18px;
+    flex-wrap:wrap;
+  }
 
+  .contact-info a{
+    color:inherit;
+  }
+
+  #map-link-inline{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    white-space:nowrap;
+  }
+
+  #map-link-inline a{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    color:inherit;
+    text-decoration:none;
+  }
+
+  #map-link-inline a:hover{
+    text-decoration:underline;
+  }
+
+  .gmaps-icon{
+    width:18px;
+    height:18px;
+    display:inline-block;
+    vertical-align:middle;
+    flex:0 0 auto;
+  }
+    
 #loading-spinner{
   position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
   z-index:9999;
@@ -261,27 +265,13 @@ body {
        src="https://raw.githubusercontent.com/toralf-dittmann/aqiml/468d8135b8b830cfcfc753be0fe270cbdcdd01f1/AQUAM%20INSULA%20Maritime%20Lifestyle%20160%20x%2040.jpg"
        alt="AQUAM INSULA Maritime Lifestyle">
 
-<div id="search-container">
-  <div id="search-and-map-row">
-    <div>
-      <div class="input-row">
-        <input type="text" id="search-input" placeholder="Search" oninput="executeSearch()">
-        <span id="close-search" onclick="clearSearch()" title="exit search">&times;</span>
-      </div>
-      <div id="search-result-count">0 results</div>
+  <div id="search-container">
+    <div class="input-row">
+      <input type="text" id="search-input" placeholder="Search" oninput="executeSearch()">
+      <span id="close-search" onclick="clearSearch()" title="exit search">&times;</span>
     </div>
-
-    <div id="map-link-container">
-      <span>Find us on</span>
-      <a href="https://www.google.com/maps/place/AQUAM+INSULA+Maritime+Lifestyle/@-17.7732533,177.3786111,1802m/data=!3m2!1e3!4b1!4m6!3m5!1s0x6e175b2101773f85:0xb93daf082cd33ba5!8m2!3d-17.7732533!4d177.381186!16s%2Fg%2F11y413_bnr?entry=ttu&g_ep=EgoyMDI2MDMxMC4wIKXMDSoASAFQAw%3D%3D"
-         target="_blank"
-         rel="noopener noreferrer"
-         title="Open AQUAM INSULA Maritime Lifestyle in Google Maps">
-        <span class="map-pin-icon">📍</span> Google Maps
-      </a>
-    </div>
+    <div id="search-result-count">0 results</div>
   </div>
-</div>
 
   <div id="basket-sidebar">
     <div id="close-basket" class="close-basket" onclick="toggleBasket()">×</div>
@@ -311,13 +301,32 @@ body {
   </div>
 
   <!-- Contact Information -->
-  <div class="contact-info">
+<div class="contact-info">
+  <span>
     Contact:
     <a href="mailto:maritime-lifestyle@aquam-insula.com"
-       style="color: inherit; text-decoration: underline;">
+       style="text-decoration: underline;">
       maritime-lifestyle@aquam-insula.com
     </a>
-  </div>
+  </span>
+
+  <span id="map-link-inline">
+    <span>Find us on</span>
+    <a href="https://www.google.com/maps/place/AQUAM+INSULA+Maritime+Lifestyle/@-17.7732533,177.3786111,1802m/data=!3m2!1e3!4b1!4m6!3m5!1s0x6e175b2101773f85:0xb93daf082cd33ba5!8m2!3d-17.7732533!4d177.381186!16s%2Fg%2F11y413_bnr?entry=ttu&g_ep=EgoyMDI2MDMxMC4wIKXMDSoASAFQAw%3D%3D"
+       target="_blank"
+       rel="noopener noreferrer"
+       title="Open AQUAM INSULA Maritime Lifestyle in Google Maps">
+      <svg class="gmaps-icon" viewBox="0 0 64 64" aria-hidden="true">
+        <path fill="#34A853" d="M22 8c-7.7 0-14 6.3-14 14 0 11.4 14 28 14 28s14-16.6 14-28c0-7.7-6.3-14-14-14z"/>
+        <path fill="#EA4335" d="M42 14c-7.7 0-14 6.3-14 14 0 11.4 14 28 14 28s14-16.6 14-28c0-7.7-6.3-14-14-14z"/>
+        <circle cx="22" cy="22" r="6" fill="#C5221F"/>
+        <circle cx="42" cy="28" r="6" fill="#FBBC04"/>
+        <path fill="#4285F4" d="M22 50l20-8 8 6-22 8z"/>
+      </svg>
+      <span>Google Maps</span>
+    </a>
+  </span>
+</div>
 </div>
 
 <!-- Supercategory Table -->
