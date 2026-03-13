@@ -15,6 +15,35 @@
   <script src="https://cdn.jsdelivr.net/npm/fuzzysort@2.0.4/fuzzysort.min.js"></script>
 
   <style>
+
+#search-and-map-row{
+  display:flex;
+  align-items:flex-start;
+  gap:20px;
+}
+
+#map-link-container{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-top:2px;
+  white-space:nowrap;
+  font-size:1.0rem;
+}
+
+#map-link-container a{
+  color:inherit;
+  text-decoration:none;
+}
+
+#map-link-container a:hover{
+  text-decoration:underline;
+}
+
+.map-pin-icon{
+  font-size:1.2rem;
+  line-height:1;
+}
 /* General Styles */
 * { outline: none; caret-color: transparent; }
 input, textarea { outline: auto; caret-color: auto; }
@@ -138,8 +167,16 @@ body {
 #title-img{ width:400px; height:auto; }
 
 #search-container{
-  display:none; height:80px; position:absolute; top:10px; left:450px; margin-left:50px;
-  align-items:flex-start; flex-direction:column; z-index:9999;
+  display:none;
+  height:80px;
+  position:absolute;
+  top:10px;
+  left:450px;
+  margin-left:50px;
+  align-items:flex-start;
+  flex-direction:column;
+  z-index:9999;
+  width:auto;
 }
 .input-row{ display:flex; align-items:center; width:100%; position:relative; }
 .product-meta{ font-size:.95rem; color:#666; }
@@ -225,13 +262,27 @@ body {
        src="https://raw.githubusercontent.com/toralf-dittmann/aqiml/468d8135b8b830cfcfc753be0fe270cbdcdd01f1/AQUAM%20INSULA%20Maritime%20Lifestyle%20160%20x%2040.jpg"
        alt="AQUAM INSULA Maritime Lifestyle">
 
-  <div id="search-container">
-    <div class="input-row">
-      <input type="text" id="search-input" placeholder="Search" oninput="executeSearch()">
-      <span id="close-search" onclick="clearSearch()" title="exit search">&times;</span>
+<div id="search-container">
+  <div id="search-and-map-row">
+    <div>
+      <div class="input-row">
+        <input type="text" id="search-input" placeholder="Search" oninput="executeSearch()">
+        <span id="close-search" onclick="clearSearch()" title="exit search">&times;</span>
+      </div>
+      <div id="search-result-count">0 results</div>
     </div>
-    <div id="search-result-count">0 results</div>
+
+    <div id="map-link-container">
+      <span>Find us on</span>
+      <a href="https://www.google.com/maps/place/AQUAM+INSULA+Maritime+Lifestyle/@-17.7732533,177.3786111,1802m/data=!3m2!1e3!4b1!4m6!3m5!1s0x6e175b2101773f85:0xb93daf082cd33ba5!8m2!3d-17.7732533!4d177.381186!16s%2Fg%2F11y413_bnr?entry=ttu&g_ep=EgoyMDI2MDMxMC4wIKXMDSoASAFQAw%3D%3D"
+         target="_blank"
+         rel="noopener noreferrer"
+         title="Open AQUAM INSULA Maritime Lifestyle in Google Maps">
+        <span class="map-pin-icon">📍</span> Google Maps
+      </a>
+    </div>
   </div>
+</div>
 
   <div id="basket-sidebar">
     <div id="close-basket" class="close-basket" onclick="toggleBasket()">×</div>
