@@ -372,11 +372,37 @@ body {
   function s(v){ return v==null? "" : String(v).trim(); }
   function n(v){ return (typeof v==="number")? v : parseFloat(String(v).replace(/[^\d.-]/g,"")) || 0; }
 
-  function toDriveImg(urlOrId){
-    const str = String(urlOrId||"");
-    const m = str.match(/[-\w]{25,}/);
-    return m ? ("https://drive.google.com/thumbnail?id="+m[0]+"&sz=w1200") : str;
+function toDriveImg(urlOrId){
+  const str = String(urlOrId || "").trim();
+  if (!str) return "";
+
+  // plain Google Drive file ID only
+  if (/^[A-Za-z0-9_-]{25,}$/.test(str) && !str.startsWith("http")) {
+    return `https://drive.google.com/thumbnail?id=${str}&sz=w1200`;
   }
+
+  // Google Drive URLs
+  if (str.includes("drive.google.com")) {
+    let m =
+      str.match(/\/file\/d\/([A-Za-z0-9_-]{25,})/) ||
+      str.match(/[?&]id=([A-Za-z0-9_-]{25,})/) ||
+      str.match(/\/thumbnail\?id=([A-Za-z0-9_-]{25,})/);
+
+    if (m) {
+      return `https://drive.google.com/thumbnail?id=${m[1]}&sz=w1200`;
+    }
+  }
+
+  // GitHub blob URL -> raw URL
+  if (str.includes("github.com") && str.includes("/blob/")) {
+    return str
+      .replace("github.com", "raw.githubusercontent.com")
+      .replace("/blob/", "/");
+  }
+
+  // GitHub raw URLs and all other normal URLs stay unchanged
+  return str;
+}
 
   function getStartParam() {
     const params = new URLSearchParams(window.location.search);
