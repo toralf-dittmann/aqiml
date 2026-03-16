@@ -512,16 +512,23 @@ function toDriveImg(urlOrId){
     console.log("fuzzysort ready with", productsData.length, "products");
   }
 
+  function getGroupKey(product){
+    const descKey = s(product.description);
+  
+    // Prefer imageHash if available, otherwise use canonicalized image URL
+    const visualKey = s(product.imageHash) || canonicalizeImageUrl(s(product.imageUrl)) || 'no-image';
+  
+    return `${visualKey}|${descKey}`;
+  }
+  
   function groupProducts(){
     productsByGroupKey = {};
     products.forEach(p=>{
-      const hashKey = s(p.imageHash) || 'no-hash';
-      const descKey = s(p.description);
-      const key = `${hashKey}|${descKey}`;
+      const key = getGroupKey(p);
       if(!productsByGroupKey[key]) productsByGroupKey[key] = [];
       productsByGroupKey[key].push(p);
     });
-  }
+  }}
 
   function isSafariBrowser(){
     return /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
@@ -692,23 +699,22 @@ function toDriveImg(urlOrId){
     displayCurrentPage();
     updatePaginationControls();
   }
-
+  
   function displayCurrentPage(){
     const groupKeys = [];
     const seenKeys = new Set();
+  
     searchResults.forEach(item=>{
-      const hashKey = s(item.imageHash) || 'no-hash';
-      const descKey = s(item.description);
-      const key = `${hashKey}|${descKey}`;
+      const key = getGroupKey(item);
       if(!seenKeys.has(key)){
         groupKeys.push(key);
         seenKeys.add(key);
       }
     });
-
+  
     const start = (currentPage - 1) * resultsPerPage;
     const pageKeys = groupKeys.slice(start, start + resultsPerPage);
-
+  
     const grid = document.getElementById('product-grid-row');
     grid.innerHTML = '';
 
@@ -874,39 +880,52 @@ function toDriveImg(urlOrId){
       document.getElementById('product-grid').appendChild(container);
     }
     container.innerHTML = '';
-
+  
+    const seenKeys = new Set();
     const groupKeys = [];
+  
     searchResults.forEach(item=>{
-      const imgKey = canonicalizeImageUrl(s(item.imageUrl));
-      const key = `${s(item.description)}|${imgKey}`;
-      if(!groupKeys.includes(key)) groupKeys.push(key);
+      const key = getGroupKey(item);
+      if(!seenKeys.has(key)){
+        seenKeys.add(key);
+        groupKeys.push(key);
+      }
     });
-
+  
     const totalPages = Math.ceil(groupKeys.length / resultsPerPage);
     if (totalPages <= 1) return;
-
+  
     const left = document.createElement('span');
     left.textContent = '◀';
     left.classList.add('page-arrow');
     left.addEventListener('click', ()=>{
-      if(currentPage>1){ currentPage--; displayCurrentPage(); }
+      if(currentPage > 1){
+        currentPage--;
+        displayCurrentPage();
+      }
     });
     container.appendChild(left);
-
-    for (let p=1; p<=totalPages; p++){
+  
+    for (let p = 1; p <= totalPages; p++){
       const btn = document.createElement('button');
       btn.textContent = p;
       btn.classList.add('page-number');
-      if (p===currentPage) btn.classList.add('active');
-      btn.addEventListener('click', ()=>{ currentPage = p; displayCurrentPage(); });
+      if (p === currentPage) btn.classList.add('active');
+      btn.addEventListener('click', ()=>{
+        currentPage = p;
+        displayCurrentPage();
+      });
       container.appendChild(btn);
     }
-
+  
     const right = document.createElement('span');
     right.textContent = '▶';
     right.classList.add('page-arrow');
     right.addEventListener('click', ()=>{
-      if(currentPage<totalPages){ currentPage++; displayCurrentPage(); }
+      if(currentPage < totalPages){
+        currentPage++;
+        displayCurrentPage();
+      }
     });
     container.appendChild(right);
   }
