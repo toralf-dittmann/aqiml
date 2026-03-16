@@ -165,10 +165,12 @@ body {
   top:0;
   left:0;
   width:100%;
-  height:80px;
   z-index:9999;
-  transition:opacity .3s ease, visibility .3s ease;
   background-color:white;
+  padding:10px 20px 8px 20px;
+  display:flex;
+  flex-direction:column;
+  gap:4px;
 }
 
 #up-icon{
@@ -177,10 +179,11 @@ body {
 }
 
 #supercategories-container{
-  margin-top:100px;
+  padding-top:110px;
   opacity:0;
   transition:opacity .5s ease-in-out;
 }
+    
 #supercategories-container.show{ opacity:1; }
 
 /* Pagination */
@@ -198,18 +201,11 @@ body {
 #pagination-controls span{ font-size:1.5rem; cursor:pointer; }
 
 .contact-info{
-  margin-top:12px;
-  margin-left:20px;
   display:flex;
   flex-direction:column;
-  align-items:flex-start;
-  gap:6px;
-  font-size:0.98rem;
-  line-height:1.35;
-  color:#2f2f2f;
-  text-align:left;
-  width:max-content;
-  max-width:520px;
+  align-items:center;
+  gap:4px;
+  font-size:0.95rem;
 }
 
 .contact-link,
